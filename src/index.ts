@@ -61,7 +61,28 @@ app.post("/signin",async (req,res)=>{
     }
 })
 
+app.post("/address",async(req,res)=>{
+    try{
+        const city = req.body.city;
+        const country = req.body.country;
+        const pincode = req.body.pincode;
+        const userId = 2 // get it from auth
+        //insert in the address table
+        const insertQuery = 'INSERT INTO ADDRESSES(city,country,pincode,userId) VALUES($1,$2,$3,$4)';
+        const response =await client.query(insertQuery,[city,country,pincode,userId]);
+        console.log("response",response);
+        res.json({
+            message:"Successfully inserted the message"
+        })
 
+    }
+    catch(e){
+        console.log("err",e)
+        res.status(500).json({
+            message:"Internal server error"
+        })
+    }
+})
 
 
 app.listen(5000,()=>{
