@@ -63,14 +63,29 @@ app.post("/signin",async (req,res)=>{
 
 app.post("/address",async(req,res)=>{
     try{
+        //users
+        const username = req.body.username;
+        const email = req.body.email;
+        const password = req.body.password;
+
+        //for addresses
         const city = req.body.city;
         const country = req.body.country;
         const pincode = req.body.pincode;
-        const userId = 2 // get it from auth
+        // const userId = 2 // get it from auth
         //insert in the address table
+        await client.query("BEGIN");
+        const userInsertQuery = 'INSERT INTO users(username,email,password) VALUES($1,$2,$3) RETURNING id';
+        const response = await client.query(userInsertQuery,[username,email,password])
+        console.log(response)
+        const userId = response.rows[0].id
+
         const insertQuery = 'INSERT INTO ADDRESSES(city,country,pincode,userId) VALUES($1,$2,$3,$4)';
-        const response =await client.query(insertQuery,[city,country,pincode,userId]);
-        console.log("response",response);
+        const responsew =await client.query(insertQuery,[city,country,pincode,userId]);
+        console.log(responsew)
+
+        await client.query("COMMIT");
+        // console.log("response",response);
         res.json({
             message:"Successfully inserted the message"
         })
@@ -80,6 +95,22 @@ app.post("/address",async(req,res)=>{
         console.log("err",e)
         res.status(500).json({
             message:"Internal server error"
+        })
+    }
+})
+
+app.get("/joins",async(req,res)=>{
+    try{
+        const query = 'SELECT u.username , u.email , a.city , a.country , a.pincode FROM users u LEFT JOIN addresses a ON u.id = a.userid WHERE u.id=$1';
+        const r = await client.query(query,[2]);
+        res.json({
+            info:r.rows
+        })
+    }
+    catch(e){
+        console.log(e)
+        res.status(500).json({
+            message:"Internal Server error"
         })
     }
 })
